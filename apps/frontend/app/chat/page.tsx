@@ -7,7 +7,7 @@ import { Bot, ChevronLeft, FileText, MessageSquarePlus, Send, User } from "lucid
 import type { ChatSessionListItem, ChatSessionMessageItem } from "@bon/contracts"
 import { LogoutButton } from "@/components/auth/logout-button"
 import { useRequireAuth } from "@/components/auth/auth-provider"
-import { getChatSessionMessages, getChatSessions, openChatStream } from "@/lib/api/chat-client"
+import { createChatSession, getChatSessionMessages, getChatSessions, openChatStream } from "@/lib/api/chat-client"
 import { Button } from "@/components/ui/button"
 import { Message } from "@/types"
 import { useToast } from "@/components/ui/toast"
@@ -113,11 +113,15 @@ export default function ChatPage() {
     const [messages, setMessages] = useState<Message[]>([])
     const [sessions, setSessions] = useState<ChatSessionListItem[]>([])
     const [loading, setLoading] = useState(false)
+    const [startingNewChat, setStartingNewChat] = useState(false)
     const [sessionsLoading, setSessionsLoading] = useState(true)
     const [messagesLoading, setMessagesLoading] = useState(false)
     const [sessionId, setSessionId] = useState<number | null>(null)
     const formRef = useRef<HTMLFormElement>(null)
     const messagesEndRef = useRef<HTMLDivElement>(null)
+    const sessionListRequestRef = useRef(0)
+    const messageRequestRef = useRef(0)
+    const selectedSessionIdRef = useRef<number | null>(null)
     const { isAuthorized, isLoading } = useRequireAuth({
         requiredRole: "user",
         forbiddenMessage: "지점 계정만 접근 가능합니다."
@@ -127,27 +131,50 @@ export default function ChatPage() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }, [messages])
 
+    useEffect(() => {
+        selectedSessionIdRef.current = sessionId
+    }, [sessionId])
+
     const loadSession = useCallback(async (targetSessionId: number) => {
+        const requestId = ++messageRequestRef.current
         setMessagesLoading(true)
+        setSessionId(targetSessionId)
 
         try {
-            setSessionId(targetSessionId)
-            setMessages((await getChatSessionMessages(targetSessionId) as ChatSessionMessageItem[]).map(mapChatMessage))
+            const nextMessages = await getChatSessionMessages(targetSessionId) as ChatSessionMessageItem[]
+
+            if (requestId !== messageRequestRef.current) {
+                return
+            }
+
+            setMessages(nextMessages.map(mapChatMessage))
         } catch (error) {
+            if (requestId !== messageRequestRef.current) {
+                return
+            }
+
             showToast(error instanceof Error ? error.message : "오류가 발생했습니다.", "error")
         } finally {
-            setMessagesLoading(false)
+            if (requestId === messageRequestRef.current) {
+                setMessagesLoading(false)
+            }
         }
     }, [showToast])
 
     const fetchSessions = useCallback(async (nextSessionId?: number | null) => {
+        const requestId = ++sessionListRequestRef.current
         setSessionsLoading(true)
 
         try {
             const nextSessions = await getChatSessions() as ChatSessionListItem[]
+
+            if (requestId !== sessionListRequestRef.current) {
+                return
+            }
+
             setSessions(nextSessions)
 
-            const preferredSessionId = nextSessionId ?? sessionId
+            const preferredSessionId = nextSessionId ?? selectedSessionIdRef.current
             if (preferredSessionId) {
                 const exists = nextSessions.some((session) => session.id === preferredSessionId)
                 if (exists) {
@@ -161,14 +188,22 @@ export default function ChatPage() {
                 return
             }
 
+            messageRequestRef.current += 1
             setSessionId(null)
             setMessages([])
+            setMessagesLoading(false)
         } catch (error) {
+            if (requestId !== sessionListRequestRef.current) {
+                return
+            }
+
             showToast(error instanceof Error ? error.message : "오류가 발생했습니다.", "error")
         } finally {
-            setSessionsLoading(false)
+            if (requestId === sessionListRequestRef.current) {
+                setSessionsLoading(false)
+            }
         }
-    }, [loadSession, sessionId, showToast])
+    }, [loadSession, showToast])
 
     useEffect(() => {
         if (!isAuthorized) {
@@ -178,15 +213,38 @@ export default function ChatPage() {
         void fetchSessions()
     }, [fetchSessions, isAuthorized])
 
-    const handleStartNewChat = () => {
+    const handleStartNewChat = useCallback(async () => {
+        if (loading || startingNewChat) {
+            return
+        }
+
+        sessionListRequestRef.current += 1
+        messageRequestRef.current += 1
+        setSessionsLoading(false)
+        setMessagesLoading(false)
         setSessionId(null)
         setMessages([])
         setInput("")
-    }
+        setStartingNewChat(true)
+
+        try {
+            const createdSession = await createChatSession()
+
+            setSessions((prev) => [
+                createdSession,
+                ...prev.filter((session) => session.id !== createdSession.id)
+            ])
+            setSessionId(createdSession.id)
+        } catch (error) {
+            showToast(error instanceof Error ? error.message : "오류가 발생했습니다.", "error")
+        } finally {
+            setStartingNewChat(false)
+        }
+    }, [loading, showToast, startingNewChat])
 
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!input.trim() || loading || !isAuthorized) return
+        if (!input.trim() || loading || startingNewChat || !isAuthorized) return
 
         const question = input.trim()
         const userMsg: Message = { role: "user", content: question }
@@ -295,7 +353,12 @@ export default function ChatPage() {
                             <h2 className="text-lg font-bold text-slate-900">대화 목록</h2>
                             <p className="text-sm text-slate-500">저장된 세션을 다시 열 수 있습니다.</p>
                         </div>
-                        <Button variant="outline" size="sm" onClick={handleStartNewChat}>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleStartNewChat}
+                            disabled={loading || startingNewChat}
+                        >
                             <MessageSquarePlus className="w-4 h-4 mr-2" />
                             새 대화
                         </Button>
@@ -310,6 +373,7 @@ export default function ChatPage() {
                                 key={session.id}
                                 type="button"
                                 onClick={() => void loadSession(session.id)}
+                                disabled={loading || startingNewChat}
                                 className={`w-full rounded-xl border px-3 py-3 text-left transition-colors ${
                                     sessionId === session.id
                                         ? "border-bon-green-start bg-white shadow-sm"
@@ -347,7 +411,13 @@ export default function ChatPage() {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm" onClick={handleStartNewChat} className="md:hidden">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleStartNewChat}
+                                className="md:hidden"
+                                disabled={loading || startingNewChat}
+                            >
                                 새 대화
                             </Button>
                             <span className="hidden md:inline-flex text-sm px-3 py-1 rounded-full border border-slate-200 text-slate-600 font-bold bg-slate-50">
@@ -363,6 +433,7 @@ export default function ChatPage() {
                                 key={session.id}
                                 type="button"
                                 onClick={() => void loadSession(session.id)}
+                                disabled={loading || startingNewChat}
                                 className={`shrink-0 rounded-full border px-3 py-1.5 text-sm ${
                                     sessionId === session.id
                                         ? "border-bon-green-start bg-white text-slate-900"
@@ -462,13 +533,14 @@ export default function ChatPage() {
                                 placeholder="궁금한 내용을 입력하세요..."
                                 className="flex-1 resize-none rounded-xl border border-slate-200 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-bon-green-start min-h-[50px] max-h-[150px]"
                                 rows={1}
+                                disabled={loading || startingNewChat}
                             />
                             <Button
                                 type="submit"
                                 size="icon"
                                 variant="gradient"
                                 className="w-12 h-auto rounded-xl shrink-0"
-                                disabled={!input.trim() || loading}
+                                disabled={!input.trim() || loading || startingNewChat}
                             >
                                 <Send className="w-5 h-5" />
                             </Button>

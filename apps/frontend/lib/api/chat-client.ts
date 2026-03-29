@@ -3,10 +3,19 @@ import type {
   ChatSessionListItem,
   ChatSessionMessageItem
 } from "@bon/contracts";
-import { apiGet, apiStream } from "@/lib/api/http";
+import { apiGet, apiPost, apiStream } from "@/lib/api/http";
 
 export function getChatSessions() {
   return apiGet<ChatSessionListItem[]>("/api/chat-sessions", { cache: "no-store" }, "대화 목록을 불러오지 못했습니다.");
+}
+
+export function createChatSession(title?: string) {
+  return apiPost<ChatSessionListItem>(
+    "/api/chat-sessions",
+    title ? { title } : {},
+    { cache: "no-store" },
+    "새 대화를 생성하지 못했습니다."
+  );
 }
 
 export function getChatSessionMessages(sessionId: number) {
