@@ -44,8 +44,50 @@ jobs:
     needs: build-and-push
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Deploy infra and export backend env
+        id: infra_env
+        env:
+          CDK_ENV_NAME: ${{ vars.CDK_ENV_NAME }}
+          CDK_BUCKET_NAME: ${{ vars.CDK_BUCKET_NAME }}
+          CDK_FRONTEND_ORIGINS: ${{ vars.CDK_FRONTEND_ORIGINS }}
+          CDK_EXISTING_EC2_ROLE_NAME: ${{ vars.CDK_EXISTING_EC2_ROLE_NAME }}
+          CDK_DEFAULT_REGION: ${{ vars.AWS_REGION }}
+        run: |
+          set -eu
+
+          cd infra/cdk
+          npm install
+          npx cdk deploy --require-approval never --outputs-file cdk-outputs.json
+          npm run export:backend-env -- --file cdk-outputs.json --stack BonInfraStack > backend.env
+          cat backend.env >> "$GITHUB_ENV"
+
+          while IFS='=' read -r key value; do
+            echo "$key=$value" >> "$GITHUB_OUTPUT"
+          done < backend.env
+
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          S3_BUCKET: ${{ steps.infra_env.outputs.S3_BUCKET }}
+          S3_REGION: ${{ steps.infra_env.outputs.S3_REGION }}
+          S3_PUBLIC_BASE_URL: ${{ steps.infra_env.outputs.S3_PUBLIC_BASE_URL }}
+          S3_UPLOAD_PREFIX: ${{ steps.infra_env.outputs.S3_UPLOAD_PREFIX }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
@@ -79,4 +121,8 @@ jobs:
               -e RAG_MIN_SCORE="${{ secrets.RAG_MIN_SCORE }}" \
               -e LLM_PROMPT_COST_PER_1K="${{ secrets.LLM_PROMPT_COST_PER_1K }}" \
               -e LLM_COMPLETION_COST_PER_1K="${{ secrets.LLM_COMPLETION_COST_PER_1K }}" \
+              -e S3_BUCKET="${{ steps.infra_env.outputs.S3_BUCKET }}" \
+              -e S3_REGION="${{ steps.infra_env.outputs.S3_REGION }}" \
+              -e S3_PUBLIC_BASE_URL="${{ steps.infra_env.outputs.S3_PUBLIC_BASE_URL }}" \
+              -e S3_UPLOAD_PREFIX="${{ steps.infra_env.outputs.S3_UPLOAD_PREFIX }}" \
               $IMAGE_NAME:latest
