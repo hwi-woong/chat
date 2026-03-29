@@ -29,15 +29,17 @@ NEXT_PUBLIC_API_URL=https://your-backend-domain.example.com
 
 ## Backend
 
-현재 백엔드 배포는 [`.github/workflows/main.yml`](../../.github/workflows/main.yml)과 [`Dockerfile`](../../Dockerfile)을 기준으로 한다.
+현재 백엔드 배포는 [`.github/workflows/main.yml`](../../.github/workflows/main.yml), [`Dockerfile`](../../Dockerfile), [`infra/cdk`](../../infra/cdk)을 기준으로 한다.
 
 흐름:
 
 1. `main` 브랜치 push
 2. GitHub Actions가 `npm ci`, `lint`, `typecheck`, `build:backend` 실행
 3. Docker 이미지 빌드 후 Docker Hub push
-4. EC2에 SSH 접속
-5. 기존 컨테이너 교체 후 새 이미지 실행
+4. CDK가 S3 및 IAM 관련 인프라 값을 반영
+5. CDK output을 backend env 형식으로 변환
+6. EC2에 SSH 접속
+7. 기존 컨테이너 교체 후 새 이미지 실행
 
 ### GitHub Secrets
 
@@ -46,6 +48,8 @@ NEXT_PUBLIC_API_URL=https://your-backend-domain.example.com
 ```text
 DOCKER_USERNAME
 DOCKER_PASSWORD
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
 EC2_HOST
 EC2_USER
 EC2_SSH_KEY
@@ -63,6 +67,16 @@ LLM_PROMPT_COST_PER_1K
 LLM_COMPLETION_COST_PER_1K
 ```
 
+권장 GitHub Actions variables:
+
+```text
+AWS_REGION
+CDK_ENV_NAME
+CDK_BUCKET_NAME
+CDK_FRONTEND_ORIGINS
+CDK_EXISTING_EC2_ROLE_NAME
+```
+
 최소 예시:
 
 ```env
@@ -75,6 +89,24 @@ RAG_TOP_K=5
 RAG_MIN_SCORE=0.4
 LLM_PROMPT_COST_PER_1K=0
 LLM_COMPLETION_COST_PER_1K=0
+```
+
+CDK output에서 주입되는 값:
+
+```text
+S3_BUCKET
+S3_REGION
+S3_PUBLIC_BASE_URL
+S3_UPLOAD_PREFIX
+```
+
+`S3_UPLOAD_PREFIX`는 base prefix 값이며, 현재 article 이미지 업로드 경로는 런타임에 `images`를 추가하여 `articles/images/...` 형식으로 생성된다.
+
+운영 EC2에 IAM role이 연결돼 있으면 다음 환경변수는 주입 불필요:
+
+```text
+S3_ACCESS_KEY_ID
+S3_SECRET_ACCESS_KEY
 ```
 
 ## 운영 체크리스트

@@ -110,3 +110,4 @@ npm run db:seed:admin -- --username admin --display-name "관리자" --password 
 - [API 가이드](./api-guide.md)
 - [배포 가이드](./deployment.md)
 - [AWS CDK 인프라 관리 계획](./cdk-migration-plan.md)
+- [인프라 운영 및 입력값 가이드](./infra-operations-guide.md)
