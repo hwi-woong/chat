@@ -10,3 +10,9 @@ npm workspace 기반 모노레포
 - [백엔드 문서](./docs/backend/README.md)
 - [프론트엔드 문서](./docs/frontend/README.md)
 - [패키지 문서](./docs/packages/README.md)
+
+## 관리자 계정 생성
+
+```bash
+npm run db:seed:admin -- --username admin --display-name "관리자" --password "change-me-now"
+```
