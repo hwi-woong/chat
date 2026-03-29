@@ -1,0 +1,13 @@
+{
+  "app": "node --import tsx bin/bon.ts",
+  "context": {
+    "projectName": "bon",
+    "envName": "dev",
+    "bucketName": "bon-article-images-dev",
+    "uploadPrefix": "articles",
+    "existingEc2RoleName": "",
+    "frontendOrigins": [
+      "http://localhost:3000"
+    ]
+  }
+}

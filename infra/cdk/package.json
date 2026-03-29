@@ -1,0 +1,22 @@
+{
+  "name": "@bon/infra-cdk",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "synth": "cdk synth",
+    "diff": "cdk diff",
+    "deploy": "cdk deploy",
+    "export:backend-env": "node scripts/export-backend-env.mjs"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.191.0",
+    "constructs": "^10.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "aws-cdk": "^2.1016.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}
