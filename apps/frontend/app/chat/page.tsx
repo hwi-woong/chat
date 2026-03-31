@@ -392,14 +392,6 @@ export default function ChatPage() {
                 <div className="flex-1 flex flex-col">
                     <header className="flex-none flex items-center justify-between px-4 md:px-6 py-4 bg-white/80 backdrop-blur border-b border-slate-200 z-10">
                         <div className="flex items-center gap-3">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => router.push("/")}
-                                className="shrink-0"
-                            >
-                                <ChevronLeft className="w-5 h-5 text-slate-500" />
-                            </Button>
                             <div>
                                 <h2 className="text-xl md:text-2xl font-bold text-slate-900">운영 매뉴얼 챗봇</h2>
                                 <p className="hidden md:block text-sm text-slate-500">
