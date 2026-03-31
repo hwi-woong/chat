@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { Shield, User } from "lucide-react"
+import { ArrowRight, Shield, User } from "lucide-react"
 
-import { Card } from "@/components/ui/card"
 import { PasswordModal } from "@/components/auth/password-modal"
+import { Card } from "@/components/ui/card"
 import type { UserRole } from "@/types"
 
 export function HomePageClient() {
@@ -23,72 +23,87 @@ export function HomePageClient() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-5xl bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 md:p-10 space-y-8">
-        <div className="relative mb-8 overflow-hidden rounded-xl bg-slate-100 border border-slate-200 shadow-sm">
-          <div className="w-full h-40 md:h-56 relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-bon-green-start/20 to-bon-green-end/20 flex items-center justify-center">
-              <Image
-                src="/logo.png"
-                alt="BON IF Logo"
-                width={200}
-                height={100}
-                className="object-contain opacity-80"
-                priority
-              />
+    <>
+      <div className="min-h-screen bg-[linear-gradient(180deg,_#f8fafc_0%,_#eef2f7_100%)]">
+        <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
+          <header className="pb-6 sm:pb-7 lg:pb-8">
+            <div className="flex w-full flex-col items-center text-center">
+              <div className="flex h-28 w-28 items-center justify-center rounded-[2rem] bg-white shadow-[0_24px_60px_-28px_rgba(15,23,42,0.22)] ring-1 ring-slate-200/80 sm:h-32 sm:w-32">
+                <Image
+                  src="/logo.png"
+                  alt="BON IF Logo"
+                  width={78}
+                  height={78}
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              <h1 className="mt-5 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">
+                본아이에프
+                <br />
+                운영 매뉴얼 챗봇
+              </h1>
+              <p className="mt-3 text-sm text-slate-500 sm:text-base">
+                모드를 선택하세요.
+              </p>
             </div>
-          </div>
+          </header>
+
+          <main className="flex flex-col">
+            <section>
+              <div className="grid w-full gap-4 lg:grid-cols-2">
+                <Card
+                  className="group cursor-pointer overflow-hidden border-0 bg-white shadow-[0_24px_80px_-36px_rgba(15,23,42,0.26)] ring-1 ring-slate-200/80 transition-all hover:-translate-y-1 hover:shadow-[0_32px_90px_-42px_rgba(95,162,36,0.3)]"
+                  onClick={() => handleRoleSelect("user")}
+                >
+                  <div className="border-b border-slate-100 bg-gradient-to-r from-bon-green-start/10 to-bon-green-end/10 px-6 py-6">
+                    <div className="flex items-start justify-between">
+                      <div className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200/60">
+                        <User className="h-7 w-7 text-bon-green-start" />
+                      </div>
+                      <ArrowRight className="h-5 w-5 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-bon-green-start" />
+                    </div>
+                  </div>
+                  <div className="p-7 sm:p-8">
+                    <p className="text-sm font-semibold text-bon-green-start">USER MODE</p>
+                    <h2 className="mt-2 text-2xl font-bold text-slate-950">사장님 모드</h2>
+                    <p className="mt-3 text-sm leading-6 text-slate-600">
+                      매장 운영에 필요한 규정과 실행 기준을 확인합니다.
+                    </p>
+                  </div>
+                </Card>
+
+                <Card
+                  className="group cursor-pointer overflow-hidden border-0 bg-white shadow-[0_24px_80px_-36px_rgba(15,23,42,0.26)] ring-1 ring-slate-200/80 transition-all hover:-translate-y-1 hover:shadow-[0_32px_90px_-42px_rgba(107,0,0,0.3)]"
+                  onClick={() => handleRoleSelect("admin")}
+                >
+                  <div className="border-b border-slate-100 bg-gradient-to-r from-bon-burgundy/10 to-slate-200 px-6 py-6">
+                    <div className="flex items-start justify-between">
+                      <div className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200/60">
+                        <Shield className="h-7 w-7 text-bon-burgundy" />
+                      </div>
+                      <ArrowRight className="h-5 w-5 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-bon-burgundy" />
+                    </div>
+                  </div>
+                  <div className="p-7 sm:p-8">
+                    <p className="text-sm font-semibold text-bon-burgundy">ADMIN MODE</p>
+                    <h2 className="mt-2 text-2xl font-bold text-slate-950">관리자 모드</h2>
+                    <p className="mt-3 text-sm leading-6 text-slate-600">
+                      문서와 대화 이력을 관리하고 답변 품질을 점검합니다.
+                    </p>
+                  </div>
+                </Card>
+              </div>
+            </section>
+          </main>
         </div>
-
-        <section className="w-full flex flex-col items-center">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
-            본아이에프 운영 매뉴얼 챗봇
-          </h1>
-          <p className="text-base md:text-lg text-slate-600 max-w-2xl">
-            사장님이 매뉴얼을 일일이 찾지 않아도, 본사 운영 규정에 맞는 답변을 바로 받을 수 있는 똑똑한 챗봇입니다.
-          </p>
-        </section>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card
-            className="group relative cursor-pointer overflow-hidden transition-all hover:shadow-md hover:border-bon-green-start/50 bg-white"
-            onClick={() => handleRoleSelect("user")}
-          >
-            <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b from-bon-green-start to-bon-green-end group-hover:w-3 transition-all" />
-            <div className="p-8 flex flex-col items-center text-center space-y-4">
-              <div className="p-4 rounded-full bg-slate-100 group-hover:bg-green-50 text-slate-600 group-hover:text-bon-green-start transition-colors">
-                <User className="w-12 h-12" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold text-slate-900">사장님 모드</h3>
-                <p className="text-slate-500 text-base mt-2">매장 운영 질문 및 매뉴얼 검색</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card
-            className="group relative cursor-pointer overflow-hidden transition-all hover:shadow-md hover:border-bon-burgundy/50 bg-white"
-            onClick={() => handleRoleSelect("admin")}
-          >
-            <div className="absolute left-0 top-0 bottom-0 w-2 bg-bon-burgundy group-hover:w-3 transition-all" />
-            <div className="p-8 flex flex-col items-center text-center space-y-4">
-              <div className="p-4 rounded-full bg-slate-100 group-hover:bg-red-50 text-slate-600 group-hover:text-bon-burgundy transition-colors">
-                <Shield className="w-12 h-12" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold text-slate-900">관리자 모드</h3>
-                <p className="text-slate-500 text-base mt-2">규정 문서 관리 및 답변 모니터링</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        <PasswordModal
-          isOpen={modalOpen}
-          onClose={closeModal}
-          role={selectedRole}
-        />
       </div>
-    </div>
+
+      <PasswordModal
+        isOpen={modalOpen}
+        onClose={closeModal}
+        role={selectedRole}
+      />
+    </>
   )
 }

@@ -1,16 +1,20 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { Menu, X, MessageSquarePlus, ChevronLeft, MoreVertical } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useEffect, useRef, useState } from "react"
+import { ChevronLeft, Menu, MessageSquarePlus, X } from "lucide-react"
 import type { ReactNode } from "react"
+
+import { Button } from "@/components/ui/button"
+
+type SidebarRenderer = ReactNode | ((controls: { closeSidebar: () => void }) => ReactNode)
 
 interface MobileChatLayoutProps {
   children: ReactNode
-  sidebar: ReactNode
+  sidebar: SidebarRenderer
   header: ReactNode
   onNewChat?: () => void
   currentSessionTitle?: string
+  sidebarTitle?: string
   showBackButton?: boolean
   onBack?: () => void
 }
@@ -21,6 +25,7 @@ export function MobileChatLayout({
   header,
   onNewChat,
   currentSessionTitle,
+  sidebarTitle = "대화 목록",
   showBackButton = false,
   onBack
 }: MobileChatLayoutProps) {
@@ -34,22 +39,25 @@ export function MobileChatLayout({
     }
   }, [])
 
-  // Close sidebar when clicking overlay
   useEffect(() => {
     if (sidebarOpen) {
-      document.body.style.overflow = 'hidden'
+      document.body.style.overflow = "hidden"
     } else {
-      document.body.style.overflow = ''
+      document.body.style.overflow = ""
     }
 
     return () => {
-      document.body.style.overflow = ''
+      document.body.style.overflow = ""
     }
   }, [sidebarOpen])
 
+  const closeSidebar = () => setSidebarOpen(false)
+  const sidebarContent = typeof sidebar === "function"
+    ? sidebar({ closeSidebar })
+    : sidebar
+
   return (
     <div className="relative h-[100dvh] overflow-hidden">
-      {/* Mobile Header - Fixed */}
       <header
         ref={headerRef}
         className="fixed top-0 left-0 right-0 z-30 bg-white border-b border-slate-200 safe-area-top"
@@ -88,7 +96,10 @@ export function MobileChatLayout({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={onNewChat}
+                onClick={() => {
+                  closeSidebar()
+                  onNewChat()
+                }}
                 className="shrink-0"
               >
                 <MessageSquarePlus className="w-5 h-5" />
@@ -99,7 +110,6 @@ export function MobileChatLayout({
         </div>
       </header>
 
-      {/* Main Content - with padding for fixed header */}
       <main
         className="h-full overflow-hidden"
         style={{ paddingTop: `${headerHeight}px` }}
@@ -107,59 +117,37 @@ export function MobileChatLayout({
         {children}
       </main>
 
-      {/* Mobile Sidebar - Overlay */}
       <>
-        {/* Backdrop */}
         {sidebarOpen && (
           <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
+            onClick={closeSidebar}
           />
         )}
 
-        {/* Sidebar Panel */}
         <aside
           className={`fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white z-50 transform transition-transform duration-300 ease-in-out lg:hidden ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
           <div className="flex flex-col h-full">
-            {/* Sidebar Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-200 safe-area-top">
-              <h2 className="text-lg font-bold text-slate-900">대화 목록</h2>
+              <h2 className="text-lg font-bold text-slate-900">{sidebarTitle}</h2>
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setSidebarOpen(false)}
+                onClick={closeSidebar}
               >
                 <X className="w-5 h-5" />
               </Button>
             </div>
 
-            {/* Sidebar Content */}
             <div className="flex-1 overflow-y-auto">
-              {sidebar}
+              {sidebarContent}
             </div>
           </div>
         </aside>
       </>
-    </div>
-  )
-}
-
-// Bottom Navigation for mobile
-export function MobileBottomNav({
-  children,
-  className = ""
-}: {
-  children: ReactNode
-  className?: string
-}) {
-  return (
-    <div className={`fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-slate-200 safe-area-bottom ${className}`}>
-      <div className="px-4 py-3">
-        {children}
-      </div>
     </div>
   )
 }
