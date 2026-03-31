@@ -30,6 +30,7 @@ type AuthContextValue = {
     setAuthenticated: (user: AuthUserPayload, identifier?: string | null) => void
     refreshSession: () => Promise<AuthSession | null>
     logout: () => Promise<void>
+    consumeUnauthenticatedToastSuppression: () => boolean
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -98,17 +99,20 @@ export function AuthProvider({
     const [session, setSession] = useState<AuthSession | null>(
         initialUser ? createSession(initialUser) : null
     )
+    const suppressUnauthenticatedToastRef = useRef(false)
 
     const setAuthenticated = useCallback((user: AuthUserPayload, identifier?: string | null) => {
         const stored = readStoredAuth()
         const nextSession = createSession(user, identifier ?? stored?.identifier ?? null)
 
+        suppressUnauthenticatedToastRef.current = false
         writeStoredAuth(nextSession)
         setSession(nextSession)
         setStatus("authenticated")
     }, [])
 
-    const clearAuth = useCallback(() => {
+    const clearAuth = useCallback((options?: { suppressUnauthenticatedToast?: boolean }) => {
+        suppressUnauthenticatedToastRef.current = options?.suppressUnauthenticatedToast ?? false
         clearStoredAuth()
         setSession(null)
         setStatus("unauthenticated")
@@ -140,15 +144,22 @@ export function AuthProvider({
         try {
             await logoutRequest()
         } finally {
-            clearAuth()
+            clearAuth({ suppressUnauthenticatedToast: true })
         }
     }, [clearAuth])
+
+    const consumeUnauthenticatedToastSuppression = useCallback(() => {
+        const shouldSuppress = suppressUnauthenticatedToastRef.current
+        suppressUnauthenticatedToastRef.current = false
+        return shouldSuppress
+    }, [])
 
     useEffect(() => {
         if (initialUser !== undefined) {
             if (initialUser) {
                 const stored = readStoredAuth()
                 const nextSession = createSession(initialUser, stored?.identifier ?? null)
+                suppressUnauthenticatedToastRef.current = false
                 writeStoredAuth(nextSession)
                 setSession(nextSession)
                 setStatus("authenticated")
@@ -169,8 +180,9 @@ export function AuthProvider({
         session,
         setAuthenticated,
         refreshSession,
-        logout
-    }), [logout, refreshSession, session, setAuthenticated, status])
+        logout,
+        consumeUnauthenticatedToastSuppression
+    }), [consumeUnauthenticatedToastSuppression, logout, refreshSession, session, setAuthenticated, status])
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
@@ -200,7 +212,7 @@ export function useRequireAuth({
     const router = useRouter()
     const pathname = usePathname()
     const { showToast } = useToast()
-    const { status, session } = useAuth()
+    const { status, session, consumeUnauthenticatedToastSuppression } = useAuth()
     const handledRef = useRef<string | null>(null)
 
     useEffect(() => {
@@ -213,7 +225,9 @@ export function useRequireAuth({
             const marker = `unauthenticated:${pathname}`
             if (handledRef.current !== marker) {
                 handledRef.current = marker
-                showToast(unauthenticatedMessage, "error")
+                if (!consumeUnauthenticatedToastSuppression()) {
+                    showToast(unauthenticatedMessage, "error")
+                }
             }
             router.replace(redirectTo)
             return
@@ -230,7 +244,7 @@ export function useRequireAuth({
         }
 
         handledRef.current = null
-    }, [forbiddenMessage, pathname, redirectTo, requiredRole, router, session, showToast, status, unauthenticatedMessage])
+    }, [consumeUnauthenticatedToastSuppression, forbiddenMessage, pathname, redirectTo, requiredRole, router, session, showToast, status, unauthenticatedMessage])
 
     return {
         isLoading: status === "loading",
