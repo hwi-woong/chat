@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Folder, FileText, MessagesSquare, Store, ChevronRight, ChevronLeft } from "lucide-react"
+import { Folder, FileText, MessagesSquare, Store, ChevronRight } from "lucide-react"
 
 import { LogoutButton } from "@/components/auth/logout-button"
 import { useRequireAuth } from "@/components/auth/auth-provider"

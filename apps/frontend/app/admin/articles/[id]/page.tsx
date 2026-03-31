@@ -1,8 +1,8 @@
 "use client"
 
 import { use, useCallback, useDeferredValue, useEffect, useState } from "react"
-import type { CreateArticleRequest, UpdateArticleRequest } from "@bon/contracts"
-import { useRouter } from "next/navigation"
+import type { CreateArticleRequest } from "@bon/contracts"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowLeft, Save, Trash2 } from "lucide-react"
 
 import { LogoutButton } from "@/components/auth/logout-button"
@@ -16,52 +16,86 @@ import { MarkdownEditor } from "@/components/ui/markdown-editor"
 import { Category, Article } from "@/types"
 import { useToast } from "@/components/ui/toast"
 
+type ArticleFormState = {
+    category_id: number
+    title: string
+    content: string
+    summary: string
+    priority: number
+    requires_sm: boolean
+    is_published: boolean
+}
+
+const DEFAULT_ARTICLE_FORM_STATE: ArticleFormState = {
+    category_id: 1,
+    title: "",
+    content: "",
+    summary: "",
+    priority: 0,
+    requires_sm: false,
+    is_published: true
+}
+
+function toArticleFormState(article: Article): ArticleFormState {
+    return {
+        category_id: article.category_id,
+        title: article.title,
+        content: article.content,
+        summary: article.summary ?? "",
+        priority: article.priority,
+        requires_sm: article.requires_sm,
+        is_published: article.is_published
+    }
+}
+
+function toArticlePayload(formData: ArticleFormState): CreateArticleRequest {
+    return {
+        category_id: formData.category_id,
+        title: formData.title.trim(),
+        content: formData.content.trim(),
+        summary: formData.summary.trim() ? formData.summary.trim() : null,
+        priority: formData.priority,
+        requires_sm: formData.requires_sm,
+        is_published: formData.is_published
+    }
+}
+
 export default function ArticleEditPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params);
-    const isNew = id === 'new';
-    const router = useRouter();
-    const { showToast } = useToast();
+    const { id } = use(params)
+    const isNew = id === "new"
+    const router = useRouter()
+    const searchParams = useSearchParams()
+    const { showToast } = useToast()
     const { isAuthorized, isLoading } = useRequireAuth({
         requiredRole: "admin",
         forbiddenMessage: "관리자만 접근 가능합니다."
     })
 
-    const [loading, setLoading] = useState(!isNew);
-    const [saving, setSaving] = useState(false);
-    const [categories, setCategories] = useState<Category[]>([]);
-
-    // Get category from URL params
-    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const categoryParam = urlParams?.get('category');
-
-    // Form State
-    const [formData, setFormData] = useState<Partial<Article>>({
-        title: "",
-        content: "",
-        summary: "",
-        category_id: categoryParam ? Number(categoryParam) : 1,
-        priority: 0,
-        requires_sm: false,
-        is_published: true
-    });
-    const deferredContent = useDeferredValue(formData.content || "");
-    const deferredTitle = useDeferredValue(formData.title || "");
+    const [loading, setLoading] = useState(!isNew)
+    const [saving, setSaving] = useState(false)
+    const [categories, setCategories] = useState<Category[]>([])
+    const categoryParam = searchParams.get("category")
+    const [formData, setFormData] = useState<ArticleFormState>(DEFAULT_ARTICLE_FORM_STATE)
+    const deferredContent = useDeferredValue(formData.content)
+    const deferredTitle = useDeferredValue(formData.title)
 
     const fetchCategories = useCallback(async () => {
         try {
             setCategories(await getCategories())
-        } catch { }
-    }, [])
+        } catch (error) {
+            showToast(error instanceof Error ? error.message : "카테고리를 불러오지 못했습니다.", "error")
+        }
+    }, [showToast])
 
     const fetchArticle = useCallback(async () => {
         try {
-            setFormData(await getArticle(id));
+            setFormData(toArticleFormState(await getArticle(id)))
         } catch (error) {
-            showToast(error instanceof Error ? error.message : "문서를 불러오지 못했습니다.", "error");
+            showToast(error instanceof Error ? error.message : "문서를 불러오지 못했습니다.", "error")
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
-    }, [id, showToast]);
+    }, [id, showToast])
 
     useEffect(() => {
         if (!isAuthorized) {
@@ -70,46 +104,65 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
 
         void fetchCategories();
         if (!isNew) {
-            void fetchArticle();
+            void fetchArticle()
             return
         }
-        setLoading(false);
-    }, [fetchArticle, fetchCategories, isAuthorized, isNew]);
+        setLoading(false)
+    }, [fetchArticle, fetchCategories, isAuthorized, isNew])
+
+    useEffect(() => {
+        if (!isNew) {
+            return
+        }
+
+        const parsedCategoryId = Number(categoryParam)
+        if (!Number.isFinite(parsedCategoryId) || parsedCategoryId <= 0) {
+            return
+        }
+
+        setFormData((prev) => (
+            prev.category_id === parsedCategoryId
+                ? prev
+                : { ...prev, category_id: parsedCategoryId }
+        ))
+    }, [categoryParam, isNew])
 
     const handleSave = async () => {
-        if (!formData.title || !formData.content) {
-            showToast("제목과 내용은 필수입니다.", "warning");
-            return;
+        const payload = toArticlePayload(formData)
+
+        if (!payload.title || !payload.content) {
+            showToast("제목과 내용은 필수입니다.", "warning")
+            return
         }
 
-        setSaving(true);
+        setSaving(true)
         try {
             if (isNew) {
-                await createArticle(formData as CreateArticleRequest)
+                await createArticle(payload)
             } else {
-                await updateArticle(id, formData as UpdateArticleRequest)
+                await updateArticle(id, payload)
             }
 
-            showToast("저장되었습니다.", "success");
-            router.push("/admin/articles");
+            showToast("저장되었습니다.", "success")
+            router.push("/admin/articles")
         } catch (error) {
-            showToast(error instanceof Error ? error.message : "오류가 발생했습니다.", "error");
+            showToast(error instanceof Error ? error.message : "오류가 발생했습니다.", "error")
         } finally {
-            setSaving(false);
+            setSaving(false)
         }
-    };
+    }
 
     const handleDelete = async () => {
-        if (!confirm("정말 삭제하시겠습니까?")) return;
+        if (!confirm("정말 삭제하시겠습니까?")) return
 
         try {
             await deleteArticle(id)
-            showToast("삭제되었습니다.", "success");
-            router.push("/admin/articles");
+            showToast("삭제되었습니다.", "success")
+            router.push("/admin/articles")
         } catch (error) {
-            showToast(error instanceof Error ? error.message : "오류가 발생했습니다.", "error");
+            showToast(error instanceof Error ? error.message : "오류가 발생했습니다.", "error")
         }
-    };
+    }
 
     const uploadArticleImage = useCallback(async (file: File) => {
         const upload = await createArticleImageUploadUrl({
@@ -128,9 +181,9 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
         }
 
         return upload.public_url;
-    }, []);
+    }, [])
 
-    if (isLoading || !isAuthorized || loading) return <div className="p-8 text-center">로딩 중...</div>;
+    if (isLoading || !isAuthorized || loading) return <div className="p-8 text-center">로딩 중...</div>
 
     return (
         <div className="min-h-screen p-4 md:p-8 flex justify-center">
@@ -170,7 +223,7 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
                                         value={String(formData.category_id)}
                                         onChange={(e) => setFormData({ ...formData, category_id: Number(e.target.value) })}
                                     >
-                                        {categories.map(c => (
+                                        {categories.map((c) => (
                                             <option key={c.id} value={c.id}>{c.name}</option>
                                         ))}
                                     </select>
@@ -196,7 +249,7 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
 
                             <MarkdownEditor
                                 label="본문 내용"
-                                value={formData.content || ""}
+                                value={formData.content}
                                 placeholder="본문 내용을 입력하세요. 이미지는 마크다운 문법으로 저장됩니다."
                                 onChange={(content) => setFormData({ ...formData, content })}
                                 onUploadImage={uploadArticleImage}
@@ -209,7 +262,7 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
                                 <textarea
                                     className="w-full min-h-[80px] rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-bon-green-start outline-none resize-none"
                                     placeholder="문서 요약..."
-                                    value={formData.summary || ""}
+                                    value={formData.summary}
                                     onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
                                 />
                             </div>

@@ -1,13 +1,13 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { useRouter } from "next/navigation"
-import { Bot, ChevronLeft, FileText, MessageSquarePlus, Send, User } from "lucide-react"
+import { Bot, FileText, MessageSquarePlus, Send, User } from "lucide-react"
 
 import type { ChatSessionListItem, ChatSessionMessageItem } from "@bon/contracts"
 import { LogoutButton } from "@/components/auth/logout-button"
 import { useRequireAuth } from "@/components/auth/auth-provider"
 import { createChatSession, getChatSessionMessages, getChatSessions, openChatStream } from "@/lib/api/chat-client"
+import { formatKoreanDateTime } from "@/lib/date"
 import { Button } from "@/components/ui/button"
 import { Message } from "@/types"
 import { useToast } from "@/components/ui/toast"
@@ -23,20 +23,6 @@ function mapChatMessage(message: ChatSessionMessageItem): Message {
 
 function formatSessionLabel(session: ChatSessionListItem) {
     return session.title?.trim() || "새 대화"
-}
-
-function formatSessionDate(value: string | null) {
-    if (!value) {
-        return "메시지 없음"
-    }
-
-    const date = new Date(value)
-    return new Intl.DateTimeFormat("ko-KR", {
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-    }).format(date)
 }
 
 type ChatStreamMeta = {
@@ -107,7 +93,6 @@ function parseSseEvent(block: string): ChatStreamEvent | null {
 }
 
 export default function ChatPage() {
-    const router = useRouter()
     const { showToast } = useToast()
     const [input, setInput] = useState("")
     const [messages, setMessages] = useState<Message[]>([])
@@ -383,7 +368,7 @@ export default function ChatPage() {
                                 <p className="line-clamp-2 text-sm font-semibold text-slate-900">
                                     {formatSessionLabel(session)}
                                 </p>
-                                <p className="mt-1 text-xs text-slate-500">{formatSessionDate(session.last_message_at)}</p>
+                                <p className="mt-1 text-xs text-slate-500">{formatKoreanDateTime(session.last_message_at)}</p>
                             </button>
                         ))}
                     </div>

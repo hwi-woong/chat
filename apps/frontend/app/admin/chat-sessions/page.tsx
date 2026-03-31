@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowLeft, MessageSquareText, Store } from "lucide-react"
 
@@ -8,22 +8,10 @@ import type { ChatSessionListItem, ChatSessionMessageItem } from "@bon/contracts
 import { LogoutButton } from "@/components/auth/logout-button"
 import { useRequireAuth } from "@/components/auth/auth-provider"
 import { getBranchChatMessages, getBranchChatSessions, getBranches } from "@/lib/api/admin-client"
+import { formatKoreanDateTime } from "@/lib/date"
 import { Button } from "@/components/ui/button"
 import { Branch } from "@/types"
 import { useToast } from "@/components/ui/toast"
-
-function formatSessionDate(value: string | null) {
-    if (!value) {
-        return "메시지 없음"
-    }
-
-    return new Intl.DateTimeFormat("ko-KR", {
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-    }).format(new Date(value))
-}
 
 export default function AdminChatSessionsPage() {
     const router = useRouter()
@@ -37,6 +25,9 @@ export default function AdminChatSessionsPage() {
     const [messageLoading, setMessageLoading] = useState(false)
     const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null)
     const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null)
+    const branchRequestRef = useRef(0)
+    const sessionRequestRef = useRef(0)
+    const messageRequestRef = useRef(0)
     const { isAuthorized, isLoading } = useRequireAuth({
         requiredRole: "admin",
         forbiddenMessage: "관리자만 접근 가능합니다."
@@ -44,29 +35,51 @@ export default function AdminChatSessionsPage() {
     const initialBranchId = Number(searchParams.get("branchId") || "")
 
     const loadSessionMessages = useCallback(async (branchId: number, sessionId: number) => {
+        const requestId = ++messageRequestRef.current
         setMessageLoading(true)
+        setSelectedBranchId(branchId)
+        setSelectedSessionId(sessionId)
 
         try {
-            setSelectedBranchId(branchId)
-            setSelectedSessionId(sessionId)
-            setMessages(await getBranchChatMessages(branchId, sessionId) as ChatSessionMessageItem[])
+            const nextMessages = await getBranchChatMessages(branchId, sessionId) as ChatSessionMessageItem[]
+
+            if (requestId !== messageRequestRef.current) {
+                return
+            }
+
+            setMessages(nextMessages)
         } catch (error) {
+            if (requestId !== messageRequestRef.current) {
+                return
+            }
+
             showToast(error instanceof Error ? error.message : "오류가 발생했습니다.", "error")
         } finally {
-            setMessageLoading(false)
+            if (requestId === messageRequestRef.current) {
+                setMessageLoading(false)
+            }
         }
     }, [showToast])
 
     const loadBranchSessions = useCallback(async (branchId: number) => {
+        const requestId = ++sessionRequestRef.current
+        messageRequestRef.current += 1
+        let shouldWaitForMessageLoad = false
         setSessionLoading(true)
         setMessageLoading(true)
+        setSelectedBranchId(branchId)
 
         try {
             const nextSessions = await getBranchChatSessions(branchId) as ChatSessionListItem[]
-            setSelectedBranchId(branchId)
+
+            if (requestId !== sessionRequestRef.current) {
+                return
+            }
+
             setSessions(nextSessions)
 
             if (nextSessions.length > 0) {
+                shouldWaitForMessageLoad = true
                 await loadSessionMessages(branchId, nextSessions[0].id)
                 return
             }
@@ -74,18 +87,33 @@ export default function AdminChatSessionsPage() {
             setSelectedSessionId(null)
             setMessages([])
         } catch (error) {
+            if (requestId !== sessionRequestRef.current) {
+                return
+            }
+
             showToast(error instanceof Error ? error.message : "오류가 발생했습니다.", "error")
         } finally {
-            setSessionLoading(false)
-            setMessageLoading(false)
+            if (requestId === sessionRequestRef.current) {
+                setSessionLoading(false)
+
+                if (!shouldWaitForMessageLoad) {
+                    setMessageLoading(false)
+                }
+            }
         }
     }, [loadSessionMessages, showToast])
 
     const fetchBranches = useCallback(async () => {
+        const requestId = ++branchRequestRef.current
         setBranchLoading(true)
 
         try {
             const nextBranches = await getBranches() as Branch[]
+
+            if (requestId !== branchRequestRef.current) {
+                return
+            }
+
             setBranches(nextBranches)
 
             if (nextBranches.length > 0) {
@@ -101,9 +129,15 @@ export default function AdminChatSessionsPage() {
             setSessions([])
             setMessages([])
         } catch (error) {
+            if (requestId !== branchRequestRef.current) {
+                return
+            }
+
             showToast(error instanceof Error ? error.message : "오류가 발생했습니다.", "error")
         } finally {
-            setBranchLoading(false)
+            if (requestId === branchRequestRef.current) {
+                setBranchLoading(false)
+            }
         }
     }, [initialBranchId, loadBranchSessions, showToast])
 
@@ -188,7 +222,7 @@ export default function AdminChatSessionsPage() {
                                     }`}
                                 >
                                     <p className="line-clamp-2 text-sm font-semibold text-slate-900">{session.title || "새 대화"}</p>
-                                    <p className="mt-1 text-xs text-slate-500">{formatSessionDate(session.last_message_at)}</p>
+                                    <p className="mt-1 text-xs text-slate-500">{formatKoreanDateTime(session.last_message_at)}</p>
                                 </button>
                             ))}
                         </div>
