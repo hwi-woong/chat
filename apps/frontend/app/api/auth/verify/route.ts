@@ -18,6 +18,16 @@ export async function POST(request: Request) {
             }),
             body: JSON.stringify(payload),
         });
+
+        const setCookie = response.headers.get("set-cookie");
+        console.log("[auth/verify] backend login response", {
+            mode,
+            status: response.status,
+            ok: response.ok,
+            hasSetCookie: Boolean(setCookie),
+            setCookiePreview: setCookie ? setCookie.split(";")[0] : null,
+        });
+
         return toJsonResponse(response);
     } catch (error) {
         console.error("Auth proxy error:", error);
