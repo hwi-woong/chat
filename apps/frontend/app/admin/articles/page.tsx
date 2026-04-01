@@ -105,7 +105,7 @@ function ArticleListContent() {
                     <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
                         <div className="flex-1 max-w-xs">
                             <select
-                                className="w-full h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-bon-green-start outline-none"
+                                className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-bon-green-start"
                                 value={selectedCategory}
                                 onChange={(e) => setSelectedCategory(e.target.value)}
                             >
