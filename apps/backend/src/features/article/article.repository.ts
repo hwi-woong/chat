@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { articles } from "@bon/db";
+import { articles, categories } from "@bon/db";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { DRIZZLE_DB } from "../../infrastructure/database/drizzle.constants";
 import type { DrizzleDb } from "../../infrastructure/database/drizzle.types";
@@ -63,6 +63,36 @@ export class ArticleRepository {
       })
       .from(articles)
       .where(and(eq(articles.id, id), isNull(articles.deletedAt)))
+      .limit(1);
+
+    return row ?? null;
+  }
+
+  async getPublishedById(id: number) {
+    const [row] = await this.db
+      .select({
+        id: articles.id,
+        category_id: articles.categoryId,
+        category_code: categories.code,
+        category_name: categories.name,
+        title: articles.title,
+        content: articles.content,
+        summary: articles.summary,
+        priority: articles.priority,
+        requires_sm: articles.requiresSm,
+        is_published: articles.isPublished
+      })
+      .from(articles)
+      .innerJoin(categories, eq(articles.categoryId, categories.id))
+      .where(
+        and(
+          eq(articles.id, id),
+          eq(articles.isPublished, true),
+          isNull(articles.deletedAt),
+          eq(categories.isActive, true),
+          isNull(categories.deletedAt)
+        )
+      )
       .limit(1);
 
     return row ?? null;

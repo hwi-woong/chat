@@ -139,6 +139,8 @@ export class KnowledgeBaseVectorRepository {
         JOIN kb_category category ON category.id = a.category_id
         WHERE a.is_published = true
           AND a.deleted_at IS NULL
+          AND category.is_active = true
+          AND category.deleted_at IS NULL
           AND a.retrieval_embedding IS NOT NULL
         ORDER BY ((1 - (a.retrieval_embedding <=> $1::vector)) * 0.7 + COALESCE(1 - (a.title_embedding <=> $1::vector), 0) * 0.3) DESC
         LIMIT $2;

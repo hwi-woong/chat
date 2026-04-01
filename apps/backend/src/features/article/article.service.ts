@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import type { ArticleSummary, CreateArticleRequest, UpdateArticleRequest } from "@bon/contracts";
+import type { ArticleDetail, ArticleSummary, CreateArticleRequest, UpdateArticleRequest } from "@bon/contracts";
 import { ArticleIngestionService } from "./article-ingestion.service";
 import { ArticleRepository } from "./article.repository";
 
@@ -21,6 +21,10 @@ export class ArticleService {
 
   async get(id: number): Promise<ArticleSummary | null> {
     return this.articleRepository.getById(id);
+  }
+
+  async getPublishedDetail(id: number): Promise<ArticleDetail | null> {
+    return this.articleRepository.getPublishedById(id);
   }
 
   async create(input: CreateArticleRequest): Promise<{ id: number }> {

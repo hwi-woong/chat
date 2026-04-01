@@ -10,10 +10,11 @@ import { ArticleController } from "./article.controller";
 import { ArticleRetrievalService } from "./article-retrieval.service";
 import { ArticleRepository } from "./article.repository";
 import { ArticleService } from "./article.service";
+import { UserArticleController } from "./user-article.controller";
 
 @Module({
   imports: [DrizzleModule, LlmModule, CategoryModule, VectorModule, StorageModule],
-  controllers: [ArticleController],
+  controllers: [ArticleController, UserArticleController],
   providers: [ArticleService, ArticleAssetService, ArticleIngestionService, ArticleRepository, ArticleRetrievalService],
   exports: [ArticleService]
 })

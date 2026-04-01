@@ -19,6 +19,11 @@ export interface ArticleSummary {
   is_published: boolean;
 }
 
+export interface ArticleDetail extends ArticleSummary {
+  category_code: string;
+  category_name: string;
+}
+
 export interface BranchSummary {
   id: number;
   code: string;
