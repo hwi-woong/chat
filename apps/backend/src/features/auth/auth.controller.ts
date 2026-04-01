@@ -9,6 +9,19 @@ import { AuthService } from "./auth.service";
 const adminLoginBodyPipe = new ZodValidationPipe(AdminLoginRequestSchema);
 const branchLoginBodyPipe = new ZodValidationPipe(BranchLoginRequestSchema);
 
+function saveSession(session: RequestWithSession["session"]) {
+  return new Promise<void>((resolve, reject) => {
+    session.save((error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    });
+  });
+}
+
 @Controller("auth")
 export class AuthController {
   constructor(@Inject(AuthService) private readonly authService: AuthService) {}
@@ -20,6 +33,7 @@ export class AuthController {
   ): Promise<SessionUser> {
     const user = await this.authService.loginAdmin(body.username, body.password);
     session.user = user;
+    await saveSession(session);
     return user;
   }
 
@@ -30,6 +44,7 @@ export class AuthController {
   ): Promise<SessionUser> {
     const user = await this.authService.loginBranch(body.codeOrName, body.password);
     session.user = user;
+    await saveSession(session);
     return user;
   }
 
