@@ -22,6 +22,7 @@ async function bootstrap() {
 
   app.use(
     session({
+      proxy: true,
       store: new PgStore({
         pool,
         tableName: appConfig.sessionTableName,
