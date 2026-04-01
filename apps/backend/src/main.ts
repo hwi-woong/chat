@@ -1,5 +1,6 @@
 import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
+import type { NestExpressApplication } from "@nestjs/platform-express";
 import connectPgSimple from "connect-pg-simple";
 import type { NextFunction, Response } from "express";
 import session from "express-session";
@@ -11,7 +12,7 @@ import { PG_POOL } from "./infrastructure/database/drizzle.constants";
 import type { Pool } from "pg";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const port = appConfig.port;
   const pool = app.get<Pool>(PG_POOL);
   const PgStore = connectPgSimple(session);
