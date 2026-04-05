@@ -24,8 +24,8 @@ export function HomePageClient() {
 
   return (
     <>
-      <div className="min-h-screen bg-[linear-gradient(180deg,_#f8fafc_0%,_#eef2f7_100%)]">
-        <div className="mx-auto flex min-h-screen justify-center w-full max-w-6xl flex-col px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
+      <div className="min-h-[100dvh] bg-[linear-gradient(180deg,_#f8fafc_0%,_#eef2f7_100%)]">
+        <div className="mx-auto flex w-full max-w-6xl flex-col px-5 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
           <header className="pb-6 sm:pb-7 lg:pb-8">
             <div className="flex w-full flex-col items-center text-center">
               <div className="flex h-28 w-28 items-center justify-center rounded-[2rem] bg-white shadow-[0_24px_60px_-28px_rgba(15,23,42,0.22)] ring-1 ring-slate-200/80 sm:h-32 sm:w-32">

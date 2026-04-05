@@ -151,8 +151,8 @@ export default function AdminChatSessionsPage() {
 
     return (
         <>
-            <div className="min-h-screen p-4 md:p-8">
-                <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-7xl flex-col overflow-hidden rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(249,250,251,0.94),rgba(241,245,249,0.98))] shadow-[0_36px_90px_-42px_rgba(15,23,42,0.36)] backdrop-blur-sm">
+            <div className="min-h-[100dvh] p-4 md:p-8">
+                <div className="mx-auto flex max-w-7xl flex-col rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(249,250,251,0.94),rgba(241,245,249,0.98))] shadow-[0_36px_90px_-42px_rgba(15,23,42,0.36)] backdrop-blur-sm">
                     <header className="sticky top-0 z-10 flex items-center justify-between border-b border-white/70 bg-white/72 px-4 py-4 backdrop-blur-md md:px-6">
                         <div className="flex min-w-0 items-center gap-4">
                             <Button variant="icon" size="icon" onClick={() => router.push("/admin")}>

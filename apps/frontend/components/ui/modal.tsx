@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { X } from "lucide-react"
+import { lockDocumentScroll } from "@/lib/scroll-lock"
 
 interface ModalProps {
     isOpen: boolean
@@ -13,6 +14,14 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, children, title, panelClassName, bodyClassName }: ModalProps) {
+    React.useEffect(() => {
+        if (!isOpen) {
+            return
+        }
+
+        return lockDocumentScroll()
+    }, [isOpen])
+
     if (!isOpen) return null
 
     return (

@@ -60,8 +60,8 @@ export default function AdminPage() {
 
     return (
         <>
-            <div className="hidden lg:flex h-screen bg-slate-50">
-                <aside className="w-64 bg-white border-r border-slate-200 flex flex-col">
+            <div className="hidden min-h-[100dvh] bg-slate-50 lg:flex">
+                <aside className="sticky top-0 flex h-[100dvh] w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
                     <div className="p-4 border-b border-slate-200">
                         <h1 className="text-xl font-bold text-slate-900">관리자 패널</h1>
                         <p className="text-sm text-slate-500">본아이에프 챗봇 관리</p>
@@ -99,7 +99,7 @@ export default function AdminPage() {
                     </div>
                 </aside>
 
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1">
                     <header className="bg-white border-b border-slate-200 px-8 py-4 sticky top-0 z-10">
                         <h2 className="text-2xl font-bold text-slate-900">
                             {activeSection === "overview" ? "대시보드" : "카테고리 관리"}
@@ -208,7 +208,7 @@ export default function AdminPage() {
                 </div>
             </div>
 
-            <div className="lg:hidden flex min-h-[100dvh] flex-col bg-slate-50">
+            <div className="flex min-h-[100dvh] flex-col bg-slate-50 lg:hidden">
                 <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
                     <div className="flex items-center justify-between px-4 py-3">
                         <div>
@@ -223,7 +223,7 @@ export default function AdminPage() {
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto px-4 pb-24 pt-5">
+                <main className="flex-1 px-4 pb-24 pt-5">
                     {activeSection === "overview" ? (
                         <>
                             <section className="grid grid-cols-2 gap-3">

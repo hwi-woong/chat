@@ -76,18 +76,15 @@ body {
 
 /* Mobile-specific improvements */
 @media (max-width: 1023px) {
-  /* Prevent overscroll bounce on iOS */
   html {
-    position: fixed;
-    height: 100%;
-    overflow: hidden;
+    min-height: 100%;
+    overflow-x: hidden;
   }
 
   body {
-    position: fixed;
-    height: 100%;
-    overflow: hidden;
+    min-height: 100dvh;
     width: 100%;
+    overflow-x: hidden;
   }
 
   /* Improve tap highlight */

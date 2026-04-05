@@ -130,8 +130,8 @@ export default function AdminBranchesPage() {
     }
 
     return (
-        <div className="min-h-screen p-4 md:p-8">
-            <div className="max-w-7xl mx-auto bg-white/90 backdrop-blur-sm rounded-xl shadow-xl min-h-[calc(100vh-4rem)] overflow-hidden flex flex-col">
+        <div className="min-h-[100dvh] p-4 md:p-8">
+            <div className="mx-auto flex max-w-7xl flex-col rounded-xl bg-white/90 shadow-xl backdrop-blur-sm">
                 <header className="bg-white/50 border-b border-slate-200 px-6 py-4 flex flex-wrap items-center justify-between sticky top-0 z-10 backdrop-blur-md">
                     <div className="flex items-center gap-4">
                         <Button variant="ghost" size="icon" onClick={() => router.push("/admin")}>
@@ -148,8 +148,8 @@ export default function AdminBranchesPage() {
                 </header>
 
                 <main className="flex-1 px-6 py-8">
-                    <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-                        <table className="w-full text-sm text-left">
+                    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
+                        <table className="w-full min-w-[720px] text-left text-sm">
                             <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
                                 <tr>
                                     <th className="px-6 py-3">코드</th>

@@ -96,8 +96,8 @@ function ArticleListContent() {
     }
 
     return (
-        <div className="min-h-screen p-4 md:p-8">
-            <div className="max-w-7xl mx-auto bg-white/90 backdrop-blur-sm rounded-xl shadow-xl min-h-[calc(100vh-4rem)] overflow-hidden flex flex-col">
+        <div className="min-h-[100dvh] p-4 md:p-8">
+            <div className="mx-auto flex max-w-7xl flex-col rounded-xl bg-white/90 shadow-xl backdrop-blur-sm">
                 <header className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white/50 px-4 py-4 backdrop-blur-md md:px-6">
                     <div className="flex min-w-0 items-center gap-3 md:gap-4">
                         <Button variant="ghost" size="icon" onClick={() => router.push('/admin')}>

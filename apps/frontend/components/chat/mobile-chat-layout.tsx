@@ -5,6 +5,7 @@ import { ChevronLeft, Menu, MessageSquarePlus, X } from "lucide-react"
 import type { ReactNode } from "react"
 
 import { Button } from "@/components/ui/button"
+import { lockDocumentScroll } from "@/lib/scroll-lock"
 
 type SidebarRenderer = ReactNode | ((controls: { closeSidebar: () => void }) => ReactNode)
 
@@ -40,15 +41,11 @@ export function MobileChatLayout({
   }, [])
 
   useEffect(() => {
-    if (sidebarOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = ""
+    if (!sidebarOpen) {
+      return
     }
 
-    return () => {
-      document.body.style.overflow = ""
-    }
+    return lockDocumentScroll()
   }, [sidebarOpen])
 
   const closeSidebar = () => setSidebarOpen(false)
