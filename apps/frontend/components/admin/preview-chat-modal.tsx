@@ -5,6 +5,7 @@ import { ArrowUp, Bot, FileSearch, LibraryBig, Sparkles, X } from "lucide-react"
 
 import { previewChat } from "@/lib/api/admin-client"
 import { Button } from "@/components/ui/button"
+import { MarkdownContent } from "@/components/ui/markdown-content"
 import { Modal } from "@/components/ui/modal"
 import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
@@ -198,7 +199,11 @@ export function PreviewChatModal({ isOpen, onClose }: PreviewChatModalProps) {
                                                 <span>ASSISTANT</span>
                                             </div>
                                         )}
-                                        <div className="whitespace-pre-wrap leading-7">{msg.content}</div>
+                                        {msg.role === "assistant" ? (
+                                            <MarkdownContent content={msg.content} variant="chat" />
+                                        ) : (
+                                            <div className="whitespace-pre-wrap leading-7">{msg.content}</div>
+                                        )}
                                     </div>
                                     {msg.role === "assistant" && <PreviewMetadata metadata={msg.metadata} />}
                                 </div>

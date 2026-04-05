@@ -9,13 +9,17 @@ type MarkdownContentProps = {
     content: string;
     className?: string;
     emptyMessage?: string;
+    variant?: "default" | "chat";
 }
 
 export function MarkdownContent({
     content,
     className,
-    emptyMessage = "아직 작성된 내용이 없습니다."
+    emptyMessage = "아직 작성된 내용이 없습니다.",
+    variant = "default"
 }: MarkdownContentProps) {
+    const isChat = variant === "chat"
+
     if (!content.trim()) {
         return (
             <div className={cn("rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500", className)}>
@@ -25,20 +29,41 @@ export function MarkdownContent({
     }
 
     return (
-        <div className={cn("space-y-3 text-sm text-slate-700", className)}>
+        <div
+            className={cn(
+                isChat ? "space-y-2 text-[15px] text-inherit" : "space-y-3 text-sm text-slate-700",
+                className
+            )}
+        >
             <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                    h1: ({ children }) => <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">{children}</h1>,
-                    h2: ({ children }) => <h2 className="mt-6 text-2xl font-semibold tracking-tight text-slate-950">{children}</h2>,
-                    h3: ({ children }) => <h3 className="mt-5 text-xl font-semibold text-slate-950">{children}</h3>,
-                    h4: ({ children }) => <h4 className="mt-4 text-lg font-semibold text-slate-900">{children}</h4>,
-                    p: ({ children }) => <p className="leading-7 text-slate-700">{children}</p>,
-                    ul: ({ children }) => <ul className="list-disc space-y-2 pl-6 marker:text-slate-400">{children}</ul>,
-                    ol: ({ children }) => <ol className="list-decimal space-y-2 pl-6 marker:text-slate-400">{children}</ol>,
+                    h1: ({ children }) => (
+                        <h1 className={cn(isChat ? "mt-1 text-2xl font-semibold tracking-tight text-inherit" : "mt-2 text-3xl font-semibold tracking-tight text-slate-950")}>
+                            {children}
+                        </h1>
+                    ),
+                    h2: ({ children }) => (
+                        <h2 className={cn(isChat ? "mt-4 text-xl font-semibold tracking-tight text-inherit" : "mt-6 text-2xl font-semibold tracking-tight text-slate-950")}>
+                            {children}
+                        </h2>
+                    ),
+                    h3: ({ children }) => (
+                        <h3 className={cn(isChat ? "mt-3 text-lg font-semibold text-inherit" : "mt-5 text-xl font-semibold text-slate-950")}>
+                            {children}
+                        </h3>
+                    ),
+                    h4: ({ children }) => (
+                        <h4 className={cn(isChat ? "mt-3 text-base font-semibold text-inherit" : "mt-4 text-lg font-semibold text-slate-900")}>
+                            {children}
+                        </h4>
+                    ),
+                    p: ({ children }) => <p className={cn("break-words leading-7", isChat ? "text-inherit" : "text-slate-700")}>{children}</p>,
+                    ul: ({ children }) => <ul className={cn("list-disc pl-6 marker:text-slate-400", isChat ? "space-y-1.5" : "space-y-2")}>{children}</ul>,
+                    ol: ({ children }) => <ol className={cn("list-decimal pl-6 marker:text-slate-400", isChat ? "space-y-1.5" : "space-y-2")}>{children}</ol>,
                     li: ({ children }) => <li className="leading-7">{children}</li>,
                     blockquote: ({ children }) => (
-                        <blockquote className="border-l-4 border-slate-300 bg-slate-50 py-1 pl-4 text-slate-600">
+                        <blockquote className={cn("border-l-4 py-1 pl-4", isChat ? "border-slate-200/80 bg-slate-50/90 text-slate-600" : "border-slate-300 bg-slate-50 text-slate-600")}>
                             {children}
                         </blockquote>
                     ),
@@ -59,12 +84,23 @@ export function MarkdownContent({
                             <img
                                 src={src}
                                 alt={alt || ""}
-                                className="my-5 w-full rounded-xl border border-slate-200 bg-white object-contain"
+                                className={cn(
+                                    "my-4 w-full rounded-xl border border-slate-200 bg-white object-contain",
+                                    isChat && "max-h-[28rem]"
+                                )}
                             />
                         )
                     },
                     a: ({ href, children }) => (
-                        <a href={href} target="_blank" rel="noreferrer" className="font-medium text-bon-green-start underline-offset-2 hover:underline">
+                        <a
+                            href={href}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={cn(
+                                "font-medium text-bon-green-start underline-offset-2 hover:underline",
+                                isChat && "break-all"
+                            )}
+                        >
                             {children}
                         </a>
                     ),

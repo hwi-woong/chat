@@ -4,6 +4,7 @@ import { FileText, MessageSquareText, Store, X } from "lucide-react"
 
 import type { ChatSessionListItem, ChatSessionMessageItem } from "@bon/contracts"
 import type { Branch } from "@/types"
+import { MarkdownContent } from "@/components/ui/markdown-content"
 import { Modal } from "@/components/ui/modal"
 import { Spinner } from "@/components/ui/spinner"
 import { formatKoreanDateTime } from "@/lib/date"
@@ -99,7 +100,11 @@ export function ChatSessionDetailModal({
                                                 : "rounded-bl-lg border border-white/80 bg-white/92 text-slate-800"
                                         }`}
                                     >
-                                        <div className="whitespace-pre-wrap leading-7">{message.content}</div>
+                                        {message.role === "assistant" ? (
+                                            <MarkdownContent content={message.content} variant="chat" />
+                                        ) : (
+                                            <div className="whitespace-pre-wrap leading-7">{message.content}</div>
+                                        )}
                                         {message.references && message.references.length > 0 && (
                                             <div className="mt-3 border-t border-slate-100 pt-3">
                                                 <p className="mb-2 text-xs font-semibold text-slate-500">참고 문서</p>

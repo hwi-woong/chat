@@ -9,6 +9,7 @@ import { LogoutButton } from "@/components/auth/logout-button"
 import { useRequireAuth } from "@/components/auth/auth-provider"
 import { MobileChatLayout } from "@/components/chat/mobile-chat-layout"
 import { Button } from "@/components/ui/button"
+import { MarkdownContent } from "@/components/ui/markdown-content"
 import { Spinner } from "@/components/ui/spinner"
 import { useToast } from "@/components/ui/toast"
 import { createChatSession, getChatSessionMessages, getChatSessions, openChatStream } from "@/lib/api/chat-client"
@@ -235,6 +236,8 @@ function ChatTranscript({
                         >
                             {msg.role === "assistant" && msg.content === "" && loading ? (
                                 <TypingIndicator />
+                            ) : msg.role === "assistant" ? (
+                                <MarkdownContent content={msg.content} variant="chat" />
                             ) : (
                                 <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                             )}
