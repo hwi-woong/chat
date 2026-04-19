@@ -3,12 +3,16 @@ import type { SessionUser } from "@bon/entities";
 import { compare } from "bcrypt";
 import { BranchRepository } from "../branch/branch.repository";
 import { AuthRepository } from "./auth.repository";
+import { SmsService } from "./sms.service";
+
+const SMS_OTP_TTL_MS = 5 * 60 * 1000;
 
 @Injectable()
 export class AuthService {
   constructor(
     @Inject(AuthRepository) private readonly authRepository: AuthRepository,
-    @Inject(BranchRepository) private readonly branchRepository: BranchRepository
+    @Inject(BranchRepository) private readonly branchRepository: BranchRepository,
+    @Inject(SmsService) private readonly smsService: SmsService
   ) {}
 
   async loginAdmin(username: string, password: string): Promise<SessionUser> {
@@ -39,5 +43,19 @@ export class AuthService {
       branchCode: branch.code,
       branchName: branch.name
     };
+  }
+
+  async sendSmsOtp(phone: string): Promise<void> {
+    const code = this.smsService.generateCode();
+    const expiresAt = new Date(Date.now() + SMS_OTP_TTL_MS);
+    await this.authRepository.createSmsVerification(phone, code, expiresAt);
+    await this.smsService.sendOtp(phone, code);
+  }
+
+  async verifySmsOtp(phone: string, code: string): Promise<boolean> {
+    const record = await this.authRepository.findValidSmsVerification(phone, code);
+    if (!record) return false;
+    await this.authRepository.markSmsVerificationUsed(record.id);
+    return true;
   }
 }

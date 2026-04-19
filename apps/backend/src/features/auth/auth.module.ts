@@ -4,10 +4,11 @@ import { DrizzleModule } from "../../infrastructure/database/drizzle.module";
 import { AuthController } from "./auth.controller";
 import { AuthRepository } from "./auth.repository";
 import { AuthService } from "./auth.service";
+import { SmsService } from "./sms.service";
 
 @Module({
   imports: [DrizzleModule, BranchModule],
   controllers: [AuthController],
-  providers: [AuthService, AuthRepository]
+  providers: [AuthService, AuthRepository, SmsService]
 })
 export class AuthModule {}

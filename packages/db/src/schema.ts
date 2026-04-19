@@ -212,6 +212,21 @@ export const chunksRelations = relations(chunks, ({ one }) => ({
   })
 }));
 
+export const smsVerifications = pgTable(
+  "sms_verifications",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+    phone: varchar("phone", { length: 20 }).notNull(),
+    code: varchar("code", { length: 6 }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt
+  },
+  (table) => ({
+    phoneIdx: index("idx_sms_verifications_phone").on(table.phone)
+  })
+);
+
 export const schema = {
   admins,
   branches,
@@ -219,5 +234,6 @@ export const schema = {
   chatMessages,
   categories,
   articles,
-  chunks
+  chunks,
+  smsVerifications
 };

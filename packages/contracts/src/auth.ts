@@ -39,3 +39,14 @@ export interface AuthUserPayload {
 }
 
 export type LoginResponse = AuthUserPayload;
+
+export const SmsSendRequestSchema = z.object({
+  phone: z.string().regex(/^01[0-9]{8,9}$/, "올바른 휴대폰 번호를 입력해주세요.")
+}).strict();
+export type SmsSendRequest = z.infer<typeof SmsSendRequestSchema>;
+
+export const SmsVerifyRequestSchema = z.object({
+  phone: z.string().min(1),
+  code: z.string().length(6)
+}).strict();
+export type SmsVerifyRequest = z.infer<typeof SmsVerifyRequestSchema>;
