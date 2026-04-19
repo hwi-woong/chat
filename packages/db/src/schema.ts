@@ -48,6 +48,7 @@ export const branches = pgTable(
     code: varchar("code", { length: 64 }).notNull(),
     name: varchar("name", { length: 120 }).notNull(),
     passwordHash: text("password_hash").notNull(),
+    authorizedPhone: varchar("authorized_phone", { length: 20 }),
     isActive: boolean("is_active").notNull().default(true),
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
     createdAt,

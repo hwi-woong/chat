@@ -1,0 +1,2 @@
+ALTER TABLE branches
+ADD COLUMN IF NOT EXISTS authorized_phone VARCHAR(20);

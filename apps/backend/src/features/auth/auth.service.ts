@@ -45,15 +45,22 @@ export class AuthService {
     };
   }
 
-  async sendSmsOtp(phone: string): Promise<void> {
+  async sendSmsOtp(branchCode: string): Promise<void> {
+    const branch = await this.branchRepository.findActiveByCode(branchCode);
+    if (!branch) throw new UnauthorizedException("존재하지 않는 지점 코드입니다.");
+    if (!branch.authorizedPhone) throw new UnauthorizedException("SMS 인증 번호가 등록되지 않은 지점입니다. 관리자에게 문의하세요.");
+
     const code = this.smsService.generateCode();
     const expiresAt = new Date(Date.now() + SMS_OTP_TTL_MS);
-    await this.authRepository.createSmsVerification(phone, code, expiresAt);
-    await this.smsService.sendOtp(phone, code);
+    await this.authRepository.createSmsVerification(branch.authorizedPhone, code, expiresAt);
+    await this.smsService.sendOtp(branch.authorizedPhone, code);
   }
 
-  async verifySmsOtp(phone: string, code: string): Promise<boolean> {
-    const record = await this.authRepository.findValidSmsVerification(phone, code);
+  async verifySmsOtp(branchCode: string, code: string): Promise<boolean> {
+    const branch = await this.branchRepository.findActiveByCode(branchCode);
+    if (!branch?.authorizedPhone) return false;
+
+    const record = await this.authRepository.findValidSmsVerification(branch.authorizedPhone, code);
     if (!record) return false;
     await this.authRepository.markSmsVerificationUsed(record.id);
     return true;

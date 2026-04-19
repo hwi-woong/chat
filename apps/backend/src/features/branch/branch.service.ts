@@ -22,7 +22,8 @@ export class BranchService {
       row = await this.branchRepository.create({
         code: input.code,
         name: input.name,
-        passwordHash
+        passwordHash,
+        authorizedPhone: input.authorized_phone || undefined
       });
     } catch (error) {
       throw mapBranchWriteError(error);
@@ -40,6 +41,9 @@ export class BranchService {
     if (typeof input.is_active === "boolean") patch.isActive = input.is_active;
     if (typeof input.password === "string" && input.password.trim()) {
       patch.passwordHash = await hash(input.password, 10);
+    }
+    if (typeof input.authorized_phone === "string") {
+      patch.authorizedPhone = input.authorized_phone.trim() || null;
     }
 
     let row;

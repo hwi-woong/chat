@@ -16,17 +16,28 @@ export class BranchRepository {
     code: string;
     name: string;
     passwordHash: string;
+    authorizedPhone?: string;
   }) {
     const [row] = await this.db
       .insert(branches)
       .values({
         code: input.code,
         name: input.name,
-        passwordHash: input.passwordHash
+        passwordHash: input.passwordHash,
+        authorizedPhone: input.authorizedPhone ?? null
       })
       .returning();
 
     return row;
+  }
+
+  async findActiveByCode(code: string) {
+    const [row] = await this.db
+      .select()
+      .from(branches)
+      .where(and(eq(branches.code, code), eq(branches.isActive, true)))
+      .limit(1);
+    return row ?? null;
   }
 
   async update(id: number, patch: Partial<typeof branches.$inferInsert>) {

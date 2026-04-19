@@ -19,6 +19,7 @@ type BranchFormState = {
     code: string
     name: string
     password: string
+    authorized_phone: string
     is_active: boolean
 }
 
@@ -26,6 +27,7 @@ const emptyForm: BranchFormState = {
     code: "",
     name: "",
     password: "",
+    authorized_phone: "",
     is_active: true,
 }
 
@@ -77,6 +79,7 @@ export default function AdminBranchesPage() {
             code: branch.code,
             name: branch.name,
             password: "",
+            authorized_phone: branch.authorized_phone ?? "",
             is_active: branch.is_active,
         })
         setModalOpen(true)
@@ -105,12 +108,14 @@ export default function AdminBranchesPage() {
                 ? {
                     name: form.name.trim(),
                     password: form.password.trim() || undefined,
+                    authorized_phone: form.authorized_phone.trim() || "",
                     is_active: form.is_active,
                 }
                 : {
                     code: form.code.trim(),
                     name: form.name.trim(),
                     password: form.password.trim(),
+                    authorized_phone: form.authorized_phone.trim() || undefined,
                 }
 
             if (editing) {
@@ -338,6 +343,17 @@ export default function AdminBranchesPage() {
                             type="password"
                             value={form.password}
                             onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-700">
+                            SMS 인증 번호 <span className="text-slate-400 font-normal">(선택 — 미입력 시 SMS 인증 불가)</span>
+                        </label>
+                        <Input
+                            type="tel"
+                            placeholder="01012345678"
+                            value={form.authorized_phone}
+                            onChange={(event) => setForm((current) => ({ ...current, authorized_phone: event.target.value }))}
                         />
                     </div>
                     {editing && (

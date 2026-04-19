@@ -39,6 +39,7 @@ export interface BranchSummary {
   id: number;
   code: string;
   name: string;
+  authorized_phone: string | null;
   is_active: boolean;
   last_login_at: string | null;
   created_at: string;
@@ -64,14 +65,16 @@ export type UpdateCategoryRequest = z.infer<typeof UpdateCategoryRequestSchema>;
 export const CreateBranchRequestSchema = z.object({
   code: requiredTrimmedString(50),
   name: requiredTrimmedString(100),
-  password: z.string().min(1)
+  password: z.string().min(1),
+  authorized_phone: z.string().regex(/^01[0-9]{8,9}$/).optional()
 }).strict();
 export type CreateBranchRequest = z.infer<typeof CreateBranchRequestSchema>;
 
 export const UpdateBranchRequestSchema = z.object({
   name: optionalTrimmedString(100),
   password: optionalString(),
-  is_active: optionalBoolean()
+  is_active: optionalBoolean(),
+  authorized_phone: z.union([z.string().regex(/^01[0-9]{8,9}$/), z.literal("")]).optional()
 }).strict();
 export type UpdateBranchRequest = z.infer<typeof UpdateBranchRequestSchema>;
 

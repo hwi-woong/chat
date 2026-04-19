@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep *)",
+      "Bash(gh pr create --title '✨ 가맹점 모드 SMS 2FA 인증 추가 \\(알리고\\)' --body ' *)"
+    ]
+  }
+}

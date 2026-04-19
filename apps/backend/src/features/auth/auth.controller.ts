@@ -44,7 +44,7 @@ export class AuthController {
   async sendSms(
     @Body(smsSendBodyPipe) body: SmsSendRequest
   ): Promise<{ success: true }> {
-    await this.authService.sendSmsOtp(body.phone);
+    await this.authService.sendSmsOtp(body.branchCode);
     return { success: true };
   }
 
@@ -53,7 +53,7 @@ export class AuthController {
     @Body(smsVerifyBodyPipe) body: SmsVerifyRequest,
     @Session() session: RequestWithSession["session"]
   ): Promise<{ success: true }> {
-    const valid = await this.authService.verifySmsOtp(body.phone, body.code);
+    const valid = await this.authService.verifySmsOtp(body.branchCode, body.code);
     if (!valid) throw new BadRequestException("인증번호가 올바르지 않거나 만료되었습니다.");
     session.smsVerified = true;
     await saveSession(session);
